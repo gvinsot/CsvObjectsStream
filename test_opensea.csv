@@ -1,4 +1,3 @@
-description;external_url(string);image;name;attributes[0].trait_type;attributes[0].value;attributes[1](object)
-Friendly OpenSea Creature that enjoys long swims in the ocean.;https://openseacreatures.io/3;https://storage.googleapis.com/opensea-prod.appspot.com/puffs/3.png;Dave Starbelly;Base;toto;{ "trait_type": "test"}
-Funny Creature that enjoys long swims in the ocean.;https://openseacreatures.io/3;https://storage.googleapis.com/opensea-prod.appspot.com/puffs/3.png;Author;Base;toto;{ "trait_type": "test"}
-
+description;external_url;image;name;attributes[0].trait_type;attributes[0].value;attributes[1].trait_type;attributes[1].value
+Friendly OpenSea Creature.;https://openseacreatures.io/3;https://storage.googleapis.com/opensea-prod.appspot.com/puffs/3.png;Dave Starbelly;Base;Starfish;Eyes;Big
+Hostile Creature.;https://openseacreatures.io/3;https://storage.googleapis.com/opensea-prod.appspot.com/puffs/3.png;Author;Base;Starfish;Eyes;Big

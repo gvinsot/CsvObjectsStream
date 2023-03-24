@@ -61,7 +61,7 @@ var CsvObjectsStream = function (filepath, options) {
 	this.setSubObjectValue = (subObject, leaf, value) => {
 		let matchArray = this._captureCaptureArrayIndex.exec(leaf);
 		let matchArrayIndex = matchArray ? Number.parseInt(matchArray[2]) : 0;
-		//console.log(`DEBUG: Leaf ${leaf} ${JSON.stringify(matchArray)}`);
+
 		if (matchArray) {
 			leaf=matchArray[1];
 			if(!(leaf in subObject))
@@ -69,35 +69,58 @@ var CsvObjectsStream = function (filepath, options) {
 			if (subObject[leaf].length >= matchArrayIndex)
 				subObject[leaf][matchArrayIndex] = value;
 			else
-				subObject[leaf].push(value);
+			{
+				if(index>=current.length)
+				{
+					while(current[branch].length<index){
+						current[branch].push({});
+					}							
+				}	
+				subObject[leaf][matchArrayIndex] = value;
+			}
+				
 		}
 		else {
+			//console.log(JSON.stringify(subObject) + ' prop '+ leaf + "->"+value);
 			subObject[leaf] = value;
 		}
 	}
 
 	this.getSubObject = (root, pathArray) => {
-		//console.log(JSON.stringify(pathArray));
+		//console.log("DEBUG "+JSON.stringify(root) +":"+  JSON.stringify(pathArray));
 		if (pathArray.length == 1)
 			return root;
 		else {
 			var current = root;
 			for (var i = 0; i < pathArray.length - 1; i++) {
-				let matchArray = this._captureCaptureArrayIndex.exec(pathArray[i]);
-				// console.log("Match " + pathArray[i] + " " + matchArray);
-				if (matchArray) {
-					if (!(pathArray[i] in current)) {
-						current[pathArray[i]] = [];
+				let branch = pathArray[i];
+				let matchArray = this._captureCaptureArrayIndex.exec(branch);
+				if (matchArray) {			
+					branch = matchArray[1];
+					let index=Number.parseInt(matchArray[2]);
+					//console.log("setting up "+branch+":"+index+" on "+JSON.stringify(current));
+					if (!(branch in current)) {
+						current[branch] = [];	
+						//console.log("adding branch array");				
 					}
-					current = current[pathArray[i]][matchArray[3]];
+					
+					if(index>=current[branch].length)
+					{
+						while(current[branch].length<=index){
+							current[branch].push({});
+						}							
+					}				
+					//console.log(">"+JSON.stringify(current) );		
+					current = current[branch][index];
 				}
 				else {
-					if (!(pathArray[i] in current)) {
-						current[pathArray[i]] = {};
+					if (!(branch in current)) {
+						current[branch] = {};
 					}
-					current = current[pathArray[i]];
+					current = current[branch];
 				}
 			}
+
 			return current;
 		}
 	}
