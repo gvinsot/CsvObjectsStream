@@ -1,6 +1,6 @@
 {
   "name": "csv-objects-streamer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Lib to stream csv as objects",
   "main": "CsvObjectsStream.js",
   "scripts": {
