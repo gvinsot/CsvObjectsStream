@@ -1,0 +1,4 @@
+description;external_url;image;name;attributes(object)
+Friendly OpenSea Creature that enjoys long swims in the ocean.;https://openseacreatures.io/3;https://storage.googleapis.com/opensea-prod.appspot.com/puffs/3.png;Dave Starbelly;[{ "trait_type": "Base",   "value": "Starfish"  },  { "trait_type": "Eyes", "value": "Big" }  ]
+Funny Creature that enjoys long swims in the ocean.;https://openseacreatures.io/3;https://storage.googleapis.com/opensea-prod.appspot.com/puffs/3.png;Author;[{ "trait_type": "Base","value": "Starfish"  },  { "trait_type": "Eyes", "value": "Big" }  ]
+

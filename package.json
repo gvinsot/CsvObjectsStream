@@ -1,0 +1,13 @@
+{
+  "name": "lux-mtm-csv-parser",
+  "version": "1.0.0",
+  "description": "Lib to stream csv as objects",
+  "main": "CsvObjectsStream.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "author": "Gildas Vinsot",
+  "license": "MIT",
+  "dependencies": {
+  }
+}
