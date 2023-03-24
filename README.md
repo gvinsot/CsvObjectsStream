@@ -5,7 +5,7 @@ Lib to stream CSV directly to complex objects using few memory and no dependenci
 
 
 ```
-npm install CsvObjectsStream
+npm install csv-objects-streamer
 ```
 
 # Input CSV format
@@ -22,7 +22,7 @@ test2;eva;false;5;2022-05-02;[{"test":123}]
 # Usage
 
 ```
-var CsvObjectsStream=require('CsvObjectsStream')
+var CsvObjectsStream=require('csv-objects-streamer')
 
 let objectsStreamer = new CsvObjectsStream('test_opensea.csv', { encoding: 'utf8', skipEmptyLines: true, separator:';' });
 
