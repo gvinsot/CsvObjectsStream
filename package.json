@@ -1,5 +1,5 @@
 {
-  "name": "lux-mtm-csv-parser",
+  "name": "CsvObjectsStream",
   "version": "1.0.0",
   "description": "Lib to stream csv as objects",
   "main": "CsvObjectsStream.js",
