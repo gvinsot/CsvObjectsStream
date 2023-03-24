@@ -15,51 +15,88 @@ var fs = require('fs');
 var events = require("events");
 
 // let's make sure we have a setImmediate function (node.js <0.10)
-if (typeof global.setImmediate == 'undefined') { setImmediate = process.nextTick;}
+if (typeof global.setImmediate == 'undefined') { setImmediate = process.nextTick; }
 
 
 var CsvObjectsStream = function (filepath, options) {
 	var self = this;
-
-	this._regexString='^([a-zA-Z0-9_.]+)(\\((string|integer|float|object|boolean|datetime)\\)){0,1}$';    
-	this._columnRegex=new RegExp(this._regexString);
+	this._regexCaptureType = '^([a-zA-Z0-9\\._\\[\\]]+)(\\((string|integer|float|object|boolean|datetime)\\)){0,1}$';
+	this._regexCapturePath = '^(([a-zA-Z0-9_]+(\\[([0-9]+)\\]){0,1})(\\.){0,1})+$';
+	this._regexCaptureArrayIndex = '^([a-zA-Z0-9_]+)\\[([0-9]+)\\]$';
+	this._captureColumnTypeRegex = new RegExp(this._regexCaptureType);
+	this._captureColumnPathRegex = new RegExp(this._regexCapturePath);
+	this._captureCaptureArrayIndex = new RegExp(this._regexCaptureArrayIndex);
 	this._currentLine = 0;
 	this._result = [];
-	this._columnsDescriptions=[];
+	this._columnsDescriptions = [];
 	this._separator = options && options.separator || ';';
 
-	this.parseColumnHeader=(header)=>{
-		if(!header)
-		{
-			return {jsonPath:["undefined"],columnType:'string'}
+	this.parseColumnHeader = (header) => {
+		if (!header) {
+			return { jsonPath: ["undefined"], columnType: 'string' }
 		}
-		let result = header.match(this._columnRegex);
-		if(!result)
-		{
+		let columnHeaderFirstCapture = this._captureColumnTypeRegex.exec(header);
+		if (!columnHeaderFirstCapture) {
+			throw `Header "${header}" not matching expected format: ${this._captureColumnTypeRegex}`;
+		}
+
+		let columnType = columnHeaderFirstCapture[3] ?? 'string'
+		//console.log(JSON.stringify(columnHeaderFirstCapture));
+
+		let result = this._captureColumnPathRegex.exec(columnHeaderFirstCapture[1]);
+		//console.log(JSON.stringify(result));
+		if (!result) {
 			throw `Header "${header}" not matching expected format: ${this._regexString}`;
 		}
-		else
-		{
-			// console.log(header);
-			// console.log(JSON.stringify(result));
+		else {
+			let jsonPath = result[0];
+			//console.log(JSON.stringify(result));
 			return {
-				jsonPath:result[1].split('.'),
-				columnType:result[3]?? 'string'
+				jsonPath: jsonPath.split('.'),
+				columnType: columnType
 			}
 		}
 	}
-	
-	this.getSubObject=(root,pathArray)=>{
-		if(pathArray.length==1)
+
+	this.setSubObjectValue = (subObject, leaf, value) => {
+		let matchArray = this._captureCaptureArrayIndex.exec(leaf);
+		let matchArrayIndex = matchArray ? Number.parseInt(matchArray[2]) : 0;
+		//console.log(`DEBUG: Leaf ${leaf} ${JSON.stringify(matchArray)}`);
+		if (matchArray) {
+			leaf=matchArray[1];
+			if(!(leaf in subObject))
+				subObject[leaf]=[];
+			if (subObject[leaf].length >= matchArrayIndex)
+				subObject[leaf][matchArrayIndex] = value;
+			else
+				subObject[leaf].push(value);
+		}
+		else {
+			subObject[leaf] = value;
+		}
+	}
+
+	this.getSubObject = (root, pathArray) => {
+		//console.log(JSON.stringify(pathArray));
+		if (pathArray.length == 1)
 			return root;
-		else
-		{
-			var current=root;
-			for(var i=0;i<pathArray.length-1;i++)
-			{
-				if(!(pathArray[i] in current))
-					current[pathArray[i]]={};
-				current=current[pathArray[i]];
+		else {
+			var current = root;
+			for (var i = 0; i < pathArray.length - 1; i++) {
+				let matchArray = this._captureCaptureArrayIndex.exec(pathArray[i]);
+				// console.log("Match " + pathArray[i] + " " + matchArray);
+				if (matchArray) {
+					if (!(pathArray[i] in current)) {
+						current[pathArray[i]] = [];
+					}
+					current = current[pathArray[i]][matchArray[3]];
+				}
+				else {
+					if (!(pathArray[i] in current)) {
+						current[pathArray[i]] = {};
+					}
+					current = current[pathArray[i]];
+				}
 			}
 			return current;
 		}
@@ -170,49 +207,47 @@ CsvObjectsStream.prototype._nextLine = function () {
 	line = this._lines.shift();
 
 	if (!this._skipEmptyLines || line.length > 0) {
-		
-		let columns=line.split(this._separator);    
-		if(this._currentLine == 0)
-		{
+
+		let columns = line.split(this._separator);
+		if (this._currentLine == 0) {
 			columns.forEach(column => {
 				this._columnsDescriptions.push(this.parseColumnHeader(column));
 			});
 			//console.log(`DEBUG: headers ${JSON.stringify(this._columnsDescriptions)}`);
 		}
-		else
-		{
-			var resultObject={};
-			var index=0;
-			columns.forEach(columnValue=>{
+		else {
+			var resultObject = {};
+			var index = 0;
+			columns.forEach(columnValue => {
 				//console.log(`DEBUG: Reading value ${columnValue}`);
-				let description=this._columnsDescriptions[index];
-				let leaf=description.jsonPath[description.jsonPath.length-1];
+				let description = this._columnsDescriptions[index];
+				let leaf = description.jsonPath[description.jsonPath.length - 1];
 				//console.log("Parsing " +description.columnType+ " "+ columnValue);
-				switch(description.columnType)
-				{
+				let subObject = this.getSubObject(resultObject, description.jsonPath);
+				switch (description.columnType) {
 					case "integer":
-						this.getSubObject(resultObject,description.jsonPath)[leaf]= Number.parseInt(columnValue);
+						this.setSubObjectValue(subObject, leaf, Number.parseInt(columnValue));
 						break;
 
 					case "float":
-						this.getSubObject(resultObject,description.jsonPath)[leaf]= Number.parseFloat(columnValue);
+						this.setSubObjectValue(subObject, leaf, Number.parseFloat(columnValue));
 						break;
 
 					case "datetime":
-						this.getSubObject(resultObject,description.jsonPath)[leaf]= Date.parse(columnValue);
+						this.setSubObjectValue(subObject, leaf, Date.parse(columnValue));
 						break;
 
 					case "object":
-						this.getSubObject(resultObject,description.jsonPath)[leaf]= JSON.parse(columnValue);
+						this.setSubObjectValue(subObject, leaf,JSON.parse(columnValue));
 						break;
 
 					case "boolean":
-						this.getSubObject(resultObject,description.jsonPath)[leaf]= columnValue.toLowerCase() == 'true';
+						this.setSubObjectValue(subObject, leaf, columnValue.toLowerCase() == 'true');
 						break;
 
 					case "string":
-					default:						
-						this.getSubObject(resultObject,description.jsonPath)[leaf]=columnValue;
+					default:
+						this.setSubObjectValue(subObject, leaf, columnValue);
 				}
 				index++;
 			});
@@ -244,7 +279,7 @@ CsvObjectsStream.prototype.resume = function () {
 };
 
 CsvObjectsStream.prototype.end = function () {
-	if (!this._ended){
+	if (!this._ended) {
 		this._ended = true;
 		this.emit('end');
 	}

@@ -1,3 +1,3 @@
-property1;prop2.value1(string);prop2.value1(boolean);prop2.value2(integer);prop2.value3.date(datetime);prop3(object)
-test;gildas;true;2;2022-05-01;{"test":234}
-test2;eva;false;5;2022-05-02;[{"test":123}]
+prop1;prop2.stringValue(string);prop2.booleanValue(boolean);prop2.integerValue(integer);prop2.dateValue(datetime);prop3(object);prop2.value4.sub1;prop2.value4.sub2(string);prop2.value5[0](integer);prop2.value5[1](integer)
+test;gildas;true;2;2022-05-01;{"test":234};foo;1;1;2
+test2;eva;false;5;2022-05-02;[{"test":123}];bar;2;1;2
