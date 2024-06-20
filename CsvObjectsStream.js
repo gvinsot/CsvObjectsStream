@@ -196,7 +196,6 @@ CsvObjectsStream.prototype._initStream = function () {
 
 	readStream.on('end', function () {
 		self._end = true;
-
 		setImmediate(function () {
 			self._nextLine();
 		});
@@ -209,7 +208,7 @@ CsvObjectsStream.prototype._nextLine = function () {
 	var self = this,
 		line;
 
-	if (this._paused) {
+	if (this._paused ||this._ended) {
 		return;
 	}
 	if (this._lines.length === 0) {
@@ -218,9 +217,7 @@ CsvObjectsStream.prototype._nextLine = function () {
 				//this.emit('line', this._lineFragment);
 				this._lineFragment = '';
 			}
-			if (!this._paused) {
-				this.end();
-			}
+			this.end();
 		} else {
 			this._readStream.resume();
 		}
@@ -281,9 +278,7 @@ CsvObjectsStream.prototype._nextLine = function () {
 	}
 
 	setImmediate(function () {
-		if (!this._paused) {
 			self._nextLine();
-		}
 	});
 };
 
