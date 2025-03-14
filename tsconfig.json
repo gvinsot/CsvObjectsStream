@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2019",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "outDir": "dist",
+    "declaration": true,         // generate declaration files
+    "declarationDir": "dist"     // (optional) output directory for declarations
+  },
+  "include": [
+    "*.ts"
+  ]
+}
